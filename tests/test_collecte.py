@@ -170,4 +170,5 @@ def test_decouvrir_wp_media_api_fermee():
     class Nav:
         def get(self, url):
             return Reponse(url, 401, b"", "", "http_401")
-    assert decouvrir_wp_media("https://a.fr", ["pv"], DepotFichiers(tempfile.mkdtemp()), Nav()) == []
+    o = decouvrir_wp_media("https://a.fr", ["pv"], DepotFichiers(tempfile.mkdtemp()), Nav())
+    assert len(o) == 1 and o[0].statut == "non_constatable" and o[0].raison == "http_401"

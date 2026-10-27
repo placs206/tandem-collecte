@@ -292,6 +292,8 @@ def decouvrir_wp_media(base: str, termes: List[str], depot: Depot, nav: Navigate
                    "&_fields=id,date,source_url,mime_type")
             rep = nav.get(api)
             if rep.statut != 200:
+                if page == 1:       # diagnostic : API fermée, bloquée ou interdite par robots.txt
+                    obs.append(Observation(api, "", "non_constatable", raison=rep.raison or f"http_{rep.statut}"))
                 break
             try:
                 items = _json.loads(rep.contenu.decode("utf-8", "replace"))

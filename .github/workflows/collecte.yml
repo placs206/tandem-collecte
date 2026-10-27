@@ -2,7 +2,12 @@ name: collecte
 on:
   schedule:
     - cron: "17 4 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      seulement:
+        description: "Identifiant d'une seule collectivité (vide = toutes)"
+        required: false
+        default: ""
 permissions:
   contents: write
 jobs:
@@ -14,7 +19,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: python run_collecte.py --archive archive --manifeste manifeste.jsonl --duree-max 1500
+      - run: python run_collecte.py --archive archive --manifeste manifeste.jsonl --duree-max 1500 ${{ inputs.seulement && format('--seulement {0}', inputs.seulement) || '' }}
       - uses: actions/upload-artifact@v4
         with:
           name: archive-collecte
