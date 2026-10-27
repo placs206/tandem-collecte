@@ -1,17 +1,55 @@
 {
   "contact_robot": "placs206@gmail.com",
   "collectivites": [
-    {"id": "salon-de-provence", "siren": "211301033", "type": "commune",
-     "points_entree": ["https://www.salondeprovence.fr/"],
-     "notes": "Pages à ajouter à la main : Démocratie locale / Conseil municipal / Délibérations / Finances (DN-09)."},
-    {"id": "metropole-amp", "siren": "200054807", "type": "metropole",
-     "points_entree": [
-       "https://ampmetropole.fr/metropole/actes-et-seances/le-conseil-de-la-metropole-en-direct/",
-       "https://ampmetropole.fr/metropole/actes-et-seances/publicite-des-actes/",
-       "https://ampmetropole.fr/metropole/actes-et-seances/les-deliberations/",
-       "https://ampmetropole.fr/metropole/les-finances/publications-legales/",
-       "https://deliberations.ampmetropole.fr/"],
-     "hotes_autorises": ["ampmetropole.fr", "deliberations.ampmetropole.fr"],
-     "notes": "Portail : pagination /N?typeDocument=DELIBERATION&domaine=METROPOLE ; incident technique signalé sur 'Les délibérations'."}
+    {
+      "id": "salon-de-provence",
+      "siren": "211301033",
+      "type": "commune",
+      "points_entree": [
+        "https://www.salondeprovence.fr/"
+      ],
+      "notes": "Pages à ajouter à la main : Démocratie locale / Conseil municipal / Délibérations / Finances (DN-09).",
+      "wp_media": [
+        "https://www.salondeprovence.fr"
+      ],
+      "wp_termes": [
+        "conseil",
+        "deliberation",
+        "proces-verbal",
+        "compte-rendu",
+        "ordre-du-jour",
+        "budget",
+        "rapport"
+      ]
+    },
+    {
+      "id": "metropole-amp",
+      "siren": "200054807",
+      "type": "metropole",
+      "points_entree": [
+        "https://ampmetropole.fr/metropole/actes-et-seances/le-conseil-de-la-metropole-en-direct/",
+        "https://ampmetropole.fr/metropole/actes-et-seances/publicite-des-actes/",
+        "https://ampmetropole.fr/metropole/actes-et-seances/les-deliberations/",
+        "https://ampmetropole.fr/metropole/les-finances/publications-legales/",
+        "https://deliberations.ampmetropole.fr/"
+      ],
+      "hotes_autorises": [
+        "ampmetropole.fr",
+        "deliberations.ampmetropole.fr"
+      ],
+      "notes": "Portail : pagination /N?typeDocument=DELIBERATION&domaine=METROPOLE ; incident technique signalé sur 'Les délibérations'.",
+      "wp_media": [
+        "https://ampmetropole.fr"
+      ],
+      "wp_termes": [
+        "Conseil-de-la-Metropole",
+        "PV-affichage",
+        "Convocation",
+        "Ordre-du-jour",
+        "Compte-rendu",
+        "Proces-verbal",
+        "Liste-des-deliberations"
+      ]
+    }
   ]
 }

@@ -143,3 +143,31 @@ def test_pages_de_recherche_ignorees():
     from collecte import _piste
     assert not _piste("https://a.fr/recherche/?recherche=conseil", "conseil")
     assert _piste("https://a.fr/conseil-municipal/", "")
+
+
+def test_decouvrir_wp_media_date_de_depot():
+    import json
+    from collecte import decouvrir_wp_media, Reponse, DepotFichiers
+    import tempfile
+
+    class Nav:
+        def get(self, url):
+            if "wp-json" in url:
+                if "page=1" in url:
+                    return Reponse(url, 200, json.dumps([{"source_url": "https://a.fr/wp-content/uploads/2025/12/PV.pdf",
+                                                          "date": "2025-12-10T09:00:00", "mime_type": "application/pdf"}]).encode(),
+                                   "application/json")
+                return Reponse(url, 404)
+            return Reponse(url, 200, b"%PDF-1", "application/pdf")
+    o = decouvrir_wp_media("https://a.fr", ["pv"], DepotFichiers(tempfile.mkdtemp()), Nav())
+    assert len(o) == 1 and o[0].depose_le_site == "2025-12-10T09:00:00" and o[0].statut == "present"
+
+
+def test_decouvrir_wp_media_api_fermee():
+    from collecte import decouvrir_wp_media, Reponse, DepotFichiers
+    import tempfile
+
+    class Nav:
+        def get(self, url):
+            return Reponse(url, 401, b"", "", "http_401")
+    assert decouvrir_wp_media("https://a.fr", ["pv"], DepotFichiers(tempfile.mkdtemp()), Nav()) == []

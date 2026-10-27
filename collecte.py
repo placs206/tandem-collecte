@@ -60,6 +60,7 @@ class Observation:
     taille: int = 0
     raison: str = ""          # pourquoi non constatable (robots, 403, 429, réseau, trop gros…)
     est_document: bool = False
+    depose_le_site: str = ""   # date de dépôt déclarée par le site (WordPress : champ « date » du média)
 
 
 class Depot(Protocol):
@@ -270,3 +271,47 @@ def comparer_passages(avant: List[Observation], apres: List[Observation]) -> Dic
         else:
             etat[o.url] = "non_constatable"
     return etat
+
+
+def decouvrir_wp_media(base: str, termes: List[str], depot: Depot, nav: Navigateur,
+                       maintenant=lambda: datetime.now(timezone.utc), pages_max: int = 3,
+                       duree_max: float = 0.0) -> List[Observation]:
+    """Découverte par l'API publique WordPress (/wp-json/wp/v2/media) : donne la liste des fichiers déposés
+    ET leur date de dépôt réelle (preuve de publication tardive, V21/V28). Soumis à robots.txt comme le reste ;
+    si l'API est fermée ou absente, on n'invente rien : aucune observation."""
+    import json as _json
+    from urllib.parse import quote as _q
+    vus: Set[str] = set()
+    obs: List[Observation] = []
+    debut = time.monotonic()
+    for terme in termes:
+        for page in range(1, pages_max + 1):
+            if duree_max and time.monotonic() - debut > duree_max:
+                return obs
+            api = (f"{base.rstrip('/')}/wp-json/wp/v2/media?search={_q(terme)}&per_page=100&page={page}"
+                   "&_fields=id,date,source_url,mime_type")
+            rep = nav.get(api)
+            if rep.statut != 200:
+                break
+            try:
+                items = _json.loads(rep.contenu.decode("utf-8", "replace"))
+            except ValueError:
+                break
+            if not isinstance(items, list) or not items:
+                break
+            for it in items:
+                url = it.get("source_url") or ""
+                if not url or url in vus or not _est_document(url, it.get("mime_type", "")):
+                    continue
+                vus.add(url)
+                r = nav.get(url)
+                if r.statut != 200:
+                    obs.append(Observation(url, api, "non_constatable", raison=r.raison or f"http_{r.statut}",
+                                           est_document=True, depose_le_site=it.get("date", "")))
+                    continue
+                h = depot.archiver(r.url or url, r.contenu, r.mime, r.statut, maintenant())
+                obs.append(Observation(url, api, "present", sha256=h, mime=r.mime, taille=len(r.contenu),
+                                       est_document=True, depose_le_site=it.get("date", "")))
+            if len(items) < 100:
+                break
+    return obs

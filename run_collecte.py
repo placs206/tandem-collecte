@@ -7,7 +7,7 @@ publication tardive, P40c/V13/V21). Les octets des documents ne sont jamais modi
 from __future__ import annotations
 import argparse, json, os
 from datetime import datetime, timezone
-from collecte import Config, DepotFichiers, parcourir
+from collecte import Config, DepotFichiers, Navigateur, decouvrir_wp_media, parcourir
 
 
 def charger_premieres_captures(manifeste: str) -> dict:
@@ -35,12 +35,15 @@ def passage(cfg_json: dict, archive: str, manifeste: str, seulement=None, delai=
             conf = Config(user_agent=f"TandemScoreCitoyenBot/0.1 (+contact: {contact})", delai=delai, duree_max=duree_max, verbeux=True,
                           hotes_autorises=set(c.get("hotes_autorises", [])))
             depot = DepotFichiers(os.path.join(archive, c["id"]))
-            for o in parcourir_fn(c["points_entree"], depot, conf):
+            observations = list(parcourir_fn(c["points_entree"], depot, conf))
+            for base in c.get("wp_media", []):
+                observations += decouvrir_wp_media(base, c.get("wp_termes", ["conseil"]), depot, Navigateur(conf), duree_max=duree_max)
+            for o in observations:
                 prem = premieres.get((c["id"], o.url, o.sha256), maintenant) if o.sha256 else None
                 sortie.write(json.dumps({
                     "collectivite": c["id"], "passage": maintenant, "url": o.url, "page_hote": o.page_hote,
                     "statut": o.statut, "raison": o.raison, "sha256": o.sha256, "mime": o.mime,
-                    "taille": o.taille, "est_document": o.est_document, "premiere_capture": prem},
+                    "taille": o.taille, "est_document": o.est_document, "premiere_capture": prem, "depose_le_site": o.depose_le_site},
                     ensure_ascii=False) + "\n")
                 n += 1
     return n
