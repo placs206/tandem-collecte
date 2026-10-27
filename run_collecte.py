@@ -21,7 +21,7 @@ def charger_premieres_captures(manifeste: str) -> dict:
     return vu
 
 
-def passage(cfg_json: dict, archive: str, manifeste: str, seulement=None, delai=2.0, parcourir_fn=parcourir) -> int:
+def passage(cfg_json: dict, archive: str, manifeste: str, seulement=None, delai=2.0, parcourir_fn=parcourir, duree_max=0.0) -> int:
     contact = cfg_json.get("contact_robot", "")
     if "A RENSEIGNER" in contact:
         raise SystemExit("Renseigner 'contact_robot' dans config/collectivites.json avant de lancer (DN-10).")
@@ -32,7 +32,7 @@ def passage(cfg_json: dict, archive: str, manifeste: str, seulement=None, delai=
         for c in cfg_json["collectivites"]:
             if seulement and c["id"] != seulement:
                 continue
-            conf = Config(user_agent=f"TandemScoreCitoyenBot/0.1 (+contact: {contact})", delai=delai,
+            conf = Config(user_agent=f"TandemScoreCitoyenBot/0.1 (+contact: {contact})", delai=delai, duree_max=duree_max, verbeux=True,
                           hotes_autorises=set(c.get("hotes_autorises", [])))
             depot = DepotFichiers(os.path.join(archive, c["id"]))
             for o in parcourir_fn(c["points_entree"], depot, conf):
@@ -53,7 +53,8 @@ if __name__ == "__main__":
     ap.add_argument("--manifeste", default="manifeste.jsonl")
     ap.add_argument("--seulement")
     ap.add_argument("--delai", type=float, default=2.0)
+    ap.add_argument("--duree-max", type=float, default=0.0, help="secondes par collectivité")
     a = ap.parse_args()
     with open(a.config, encoding="utf-8") as f:
         cfg = json.load(f)
-    print(passage(cfg, a.archive, a.manifeste, a.seulement, a.delai), "observations")
+    print(passage(cfg, a.archive, a.manifeste, a.seulement, a.delai, duree_max=a.duree_max), "observations")

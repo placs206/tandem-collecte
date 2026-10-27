@@ -35,6 +35,8 @@ class Config:
     max_taille: int = 60 * 1024 * 1024
     profondeur_max: int = 3
     pages_max: int = 400          # garde-fou par collectivité et par passage
+    duree_max: float = 0.0        # secondes par collectivité (0 = illimité) ; l'arrêt est propre, les observations sont gardées
+    verbeux: bool = False
     hotes_autorises: Set[str] = field(default_factory=set)   # en plus de l'hôte du point d'entrée
 
 
@@ -206,7 +208,10 @@ def parcourir(points_entree: List[str], depot: Depot, config: Optional[Config] =
     file: List[Tuple[str, str, int]] = [(u, "", 0) for u in points_entree]
     obs: List[Observation] = []
     pages = 0
+    debut = time.monotonic()
     while file and pages < cfg.pages_max:
+        if cfg.duree_max and time.monotonic() - debut > cfg.duree_max:
+            break
         url, hote_page, prof = file.pop(0)
         if url in vu:
             continue
@@ -214,6 +219,8 @@ def parcourir(points_entree: List[str], depot: Depot, config: Optional[Config] =
         if urlparse(url).netloc not in hotes:
             continue
         rep = nav.get(url)
+        if cfg.verbeux:
+            print(f"[{len(obs)}] {rep.statut} {url} {rep.raison}", flush=True)
         est_doc = _est_document(rep.url or url, rep.mime)
         if rep.statut != 200:
             obs.append(Observation(url, hote_page, "non_constatable", raison=rep.raison or f"http_{rep.statut}",
