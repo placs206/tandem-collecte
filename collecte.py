@@ -321,6 +321,4 @@ def decouvrir_wp_media(base: str, termes: List[str], depot: Depot, nav: Navigate
                 h = depot.archiver(r.url or url, r.contenu, r.mime, r.statut, maintenant())
                 obs.append(Observation(url, api, "present", sha256=h, mime=r.mime, taille=len(r.contenu),
                                        est_document=True, depose_le_site=it.get("date", "")))
-            if len(items) < 100:
-                break
     return obs
