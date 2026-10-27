@@ -37,7 +37,8 @@ def passage(cfg_json: dict, archive: str, manifeste: str, seulement=None, delai=
             depot = DepotFichiers(os.path.join(archive, c["id"]))
             observations = list(parcourir_fn(c["points_entree"], depot, conf))
             for base in c.get("wp_media", []):
-                observations += decouvrir_wp_media(base, c.get("wp_termes", ["conseil"]), depot, Navigateur(conf), duree_max=duree_max)
+                observations += decouvrir_wp_media(base, c.get("wp_termes", ["conseil"]), depot, Navigateur(conf), duree_max=duree_max,
+                                                    pages_max=c.get("wp_pages", 3), filtre=c.get("wp_filtre", ""))
             for o in observations:
                 prem = premieres.get((c["id"], o.url, o.sha256), maintenant) if o.sha256 else None
                 sortie.write(json.dumps({

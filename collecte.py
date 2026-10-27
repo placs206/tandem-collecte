@@ -275,12 +275,14 @@ def comparer_passages(avant: List[Observation], apres: List[Observation]) -> Dic
 
 def decouvrir_wp_media(base: str, termes: List[str], depot: Depot, nav: Navigateur,
                        maintenant=lambda: datetime.now(timezone.utc), pages_max: int = 3,
-                       duree_max: float = 0.0) -> List[Observation]:
+                       duree_max: float = 0.0, filtre: str = "") -> List[Observation]:
     """Découverte par l'API publique WordPress (/wp-json/wp/v2/media) : donne la liste des fichiers déposés
     ET leur date de dépôt réelle (preuve de publication tardive, V21/V28). Soumis à robots.txt comme le reste ;
     si l'API est fermée ou absente, on n'invente rien : aucune observation."""
     import json as _json
     from urllib.parse import quote as _q
+    import re as _re
+    motif = _re.compile(filtre, _re.I) if filtre else None
     vus: Set[str] = set()
     obs: List[Observation] = []
     debut = time.monotonic()
@@ -288,7 +290,8 @@ def decouvrir_wp_media(base: str, termes: List[str], depot: Depot, nav: Navigate
         for page in range(1, pages_max + 1):
             if duree_max and time.monotonic() - debut > duree_max:
                 return obs
-            api = (f"{base.rstrip('/')}/wp-json/wp/v2/media?search={_q(terme)}&per_page=100&page={page}"
+            recherche = f"search={_q(terme)}&" if terme else "orderby=date&order=desc&"
+            api = (f"{base.rstrip('/')}/wp-json/wp/v2/media?{recherche}per_page=100&page={page}"
                    "&_fields=id,date,source_url,mime_type")
             rep = nav.get(api)
             if rep.statut != 200:
@@ -300,10 +303,14 @@ def decouvrir_wp_media(base: str, termes: List[str], depot: Depot, nav: Navigate
             except ValueError:
                 break
             if not isinstance(items, list) or not items:
+                if page == 1:
+                    obs.append(Observation(api, "", "non_constatable", raison="api_media_vide"))
                 break
             for it in items:
                 url = it.get("source_url") or ""
                 if not url or url in vus or not _est_document(url, it.get("mime_type", "")):
+                    continue
+                if motif and not motif.search(url):
                     continue
                 vus.add(url)
                 r = nav.get(url)

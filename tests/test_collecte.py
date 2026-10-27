@@ -172,3 +172,23 @@ def test_decouvrir_wp_media_api_fermee():
             return Reponse(url, 401, b"", "", "http_401")
     o = decouvrir_wp_media("https://a.fr", ["pv"], DepotFichiers(tempfile.mkdtemp()), Nav())
     assert len(o) == 1 and o[0].statut == "non_constatable" and o[0].raison == "http_401"
+
+
+def test_decouvrir_wp_media_sans_recherche_avec_filtre():
+    import json, tempfile
+    from collecte import decouvrir_wp_media, Reponse, DepotFichiers
+    vus = []
+
+    class Nav:
+        def get(self, url):
+            vus.append(url)
+            if "wp-json" in url:
+                if "page=1" in url and "search=" not in url:
+                    return Reponse(url, 200, json.dumps([
+                        {"source_url": "https://a.fr/u/PV-Conseil.pdf", "date": "2025-12-10T09:00:00", "mime_type": "application/pdf"},
+                        {"source_url": "https://a.fr/u/arrete-voirie.pdf", "date": "2025-12-11T09:00:00", "mime_type": "application/pdf"}]).encode(), "application/json")
+                return Reponse(url, 404)
+            return Reponse(url, 200, b"%PDF-1", "application/pdf")
+    o = decouvrir_wp_media("https://a.fr", [""], DepotFichiers(tempfile.mkdtemp()), Nav(), filtre="conseil|PV")
+    assert [x.url for x in o] == ["https://a.fr/u/PV-Conseil.pdf"]
+    assert not any(u.endswith("arrete-voirie.pdf") for u in vus)
