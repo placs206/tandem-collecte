@@ -18,10 +18,11 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from html.parser import HTMLParser
 from typing import Dict, List, Optional, Protocol, Set, Tuple
-from urllib.parse import urldefrag, urljoin, urlparse
+from urllib.parse import quote, urldefrag, urljoin, urlparse, urlsplit, urlunsplit
 
 VERSION_ROBOT = "collecte-0.1"
 EXT_DOCUMENTS = (".pdf", ".docx", ".doc", ".odt", ".xlsx", ".xls", ".ods", ".csv", ".txt")
+URLS_IGNOREES = ("/recherche", "?s=", "?recherche=", "/feed", "/wp-json", "/tag/")
 MOTS_PISTES = ("conseil", "deliberation", "proces", "compte-rendu", "compte_rendu", "seance", "ordre",
                "odj", "budget", "arrete", "publication", "archive", "registre", "rapport", "reglement",
                "commission", "document", "transparence", "democratie")
@@ -85,6 +86,14 @@ class DepotFichiers:
         return h
 
 
+def url_encodee(url: str) -> str:
+    """Encode espaces et caractères non ASCII (ex. « N°67 », « Annexe FPIC 2026.pdf ») sans toucher à ce qui l'est déjà."""
+    u = urlsplit(url)
+    return urlunsplit((u.scheme, u.netloc.encode("idna").decode("ascii"),
+                       quote(u.path, safe="/%:@!$&'()*+,;=~-._"),
+                       quote(u.query, safe="=&%:@/?+,;~-._!$'()*"), ""))
+
+
 class _Liens(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -143,7 +152,7 @@ class Navigateur:
         hote = urlparse(url).netloc
         self._attendre(hote)
         self.requetes += 1
-        req = urllib.request.Request(url, headers={"User-Agent": self.c.user_agent})
+        req = urllib.request.Request(url_encodee(url), headers={"User-Agent": self.c.user_agent})
         try:
             with urllib.request.urlopen(req, timeout=self.c.timeout) as r:
                 contenu = r.read(self.c.max_taille + 1)
@@ -194,6 +203,8 @@ def _est_document(url: str, mime: str = "") -> bool:
 
 
 def _piste(url: str, texte: str) -> bool:
+    if any(m in url.lower() for m in URLS_IGNOREES):
+        return False
     s = (url + " " + texte).lower()
     return any(m in s for m in MOTS_PISTES)
 

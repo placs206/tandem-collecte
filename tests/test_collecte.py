@@ -130,3 +130,16 @@ def test_document_modifie_garde_les_deux_versions(serveur, tmp_path):
     parcourir([serveur + "/"], depot, cfg())
     hashes = {e["sha256"] for e in depot.index if e["url"].endswith("pv1.pdf")}
     assert len(hashes) == 2                                        # la preuve de la 1re version est conservée
+
+
+def test_url_encodee_espaces_et_accents():
+    from collecte import url_encodee
+    assert url_encodee("https://a.fr/x/Salon-Mag-N°67.pdf") == "https://a.fr/x/Salon-Mag-N%C2%B067.pdf"
+    assert url_encodee("https://a.fr/Annexe FPIC 2026.pdf") == "https://a.fr/Annexe%20FPIC%202026.pdf"
+    assert url_encodee("https://a.fr/a%20b.pdf") == "https://a.fr/a%20b.pdf"
+
+
+def test_pages_de_recherche_ignorees():
+    from collecte import _piste
+    assert not _piste("https://a.fr/recherche/?recherche=conseil", "conseil")
+    assert _piste("https://a.fr/conseil-municipal/", "")
