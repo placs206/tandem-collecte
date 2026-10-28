@@ -1,11 +1,15 @@
 {
- "passage_en_cours": null,
+ "passage_en_cours": {
+  "id": "2026-10-28T19:42:17.058933+00:00",
+  "termine": false,
+  "collectivites_terminees": []
+ },
  "dernier_passage_complet": "2026-10-28T05:48:36+00:00",
- "derniere_observation": "2026-10-28T05:48:36+00:00",
- "derniere_execution": "2026-10-28T05:48:36+00:00",
+ "derniere_observation": "2026-10-28T19:52:18.985845+00:00",
+ "derniere_execution": "2026-10-28T19:42:17.058933+00:00",
  "derniere_erreur": null,
  "erreurs": [],
  "tentatives": {},
- "executions": 0,
+ "executions": 1,
  "note": "Initialisé à la main d'après le dernier passage planifié réussi (run 40634673640). Mis à jour ensuite par run_collecte.py --cycle."
 }
