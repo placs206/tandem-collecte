@@ -38,6 +38,8 @@ class Config:
     pages_max: int = 400          # garde-fou par collectivité et par passage
     duree_max: float = 0.0        # secondes par collectivité (0 = illimité) ; l'arrêt est propre, les observations sont gardées
     verbeux: bool = False
+    attente_reprise: float = 5.0   # secondes × essai² entre deux essais (réseau, 5xx)
+    sur_observation: object = None   # rappel appelé à chaque observation (écriture immédiate : rien n'est perdu si le passage est coupé)
     hotes_autorises: Set[str] = field(default_factory=set)   # en plus de l'hôte du point d'entrée
 
 
@@ -150,6 +152,17 @@ class Navigateur:
         self._dernier[hote] = self._horloge()
 
     def _brut(self, url: str) -> Reponse:
+        """Une requête avec reprises : réseau, délai dépassé et 5xx sont retentés (3 essais, attente croissante)."""
+        rep = self._une_fois(url)
+        for essai in range(1, 4):
+            retentable = rep.raison.startswith("reseau:") or rep.statut >= 500   # jamais 403/429 : on n'insiste pas (DN-10)
+            if not retentable:
+                break
+            self._dormir(self.c.attente_reprise * essai * essai)
+            rep = self._une_fois(url)
+        return rep
+
+    def _une_fois(self, url: str) -> Reponse:
         hote = urlparse(url).netloc
         self._attendre(hote)
         self.requetes += 1
@@ -210,6 +223,18 @@ def _piste(url: str, texte: str) -> bool:
     return any(m in s for m in MOTS_PISTES)
 
 
+class _Suivi(list):
+    """Liste d'observations qui prévient un rappel à chaque ajout."""
+    def __init__(self, base, rappel):
+        super().__init__(base)
+        self._rappel = rappel
+
+    def append(self, o):
+        super().append(o)
+        if self._rappel:
+            self._rappel(o)
+
+
 def parcourir(points_entree: List[str], depot: Depot, config: Optional[Config] = None,
               nav: Optional[Navigateur] = None, maintenant=lambda: datetime.now(timezone.utc)) -> List[Observation]:
     """Un passage de collecte pour une collectivité. Retourne les observations (documents et pages lus)."""
@@ -219,6 +244,8 @@ def parcourir(points_entree: List[str], depot: Depot, config: Optional[Config] =
     vu: Set[str] = set()
     file: List[Tuple[str, str, int]] = [(u, "", 0) for u in points_entree]
     obs: List[Observation] = []
+    _ajout = obs.append
+    obs = _Suivi(obs, cfg.sur_observation)
     pages = 0
     debut = time.monotonic()
     while file and pages < cfg.pages_max:

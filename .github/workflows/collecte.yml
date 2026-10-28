@@ -13,14 +13,15 @@ permissions:
 jobs:
   collecte:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 340
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: python run_collecte.py --archive archive --manifeste manifeste.jsonl --duree-max 1500 ${{ inputs.seulement && format('--seulement {0}', inputs.seulement) || '' }}
+      - run: python run_collecte.py --archive archive --manifeste manifeste.jsonl --duree-max 7200 ${{ inputs.seulement && format('--seulement {0}', inputs.seulement) || '' }}
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: archive-collecte
           path: |
@@ -28,6 +29,7 @@ jobs:
             manifeste.jsonl
           retention-days: 90
       - name: Historiser le manifeste
+        if: always()
         run: |
           git config user.name collecte-bot
           git config user.email collecte-bot@users.noreply.github.com

@@ -35,18 +35,30 @@ def passage(cfg_json: dict, archive: str, manifeste: str, seulement=None, delai=
             conf = Config(user_agent=f"TandemScoreCitoyenBot/0.1 (+contact: {contact})", delai=delai, duree_max=duree_max, verbeux=True,
                           hotes_autorises=set(c.get("hotes_autorises", [])))
             depot = DepotFichiers(os.path.join(archive, c["id"]))
-            observations = list(parcourir_fn(c["points_entree"], depot, conf))
-            for base in c.get("wp_media", []):
-                observations += decouvrir_wp_media(base, c.get("wp_termes", ["conseil"]), depot, Navigateur(conf), duree_max=duree_max,
-                                                    pages_max=c.get("wp_pages", 3), filtre=c.get("wp_filtre", ""))
-            for o in observations:
-                prem = premieres.get((c["id"], o.url, o.sha256), maintenant) if o.sha256 else None
+            def ecrire(o, coll=c):
+                nonlocal n
+                prem = premieres.get((coll["id"], o.url, o.sha256), maintenant) if o.sha256 else None
                 sortie.write(json.dumps({
-                    "collectivite": c["id"], "passage": maintenant, "url": o.url, "page_hote": o.page_hote,
+                    "collectivite": coll["id"], "passage": maintenant, "url": o.url, "page_hote": o.page_hote,
                     "statut": o.statut, "raison": o.raison, "sha256": o.sha256, "mime": o.mime,
-                    "taille": o.taille, "est_document": o.est_document, "premiere_capture": prem, "depose_le_site": o.depose_le_site},
-                    ensure_ascii=False) + "\n")
+                    "taille": o.taille, "est_document": o.est_document, "premiere_capture": prem,
+                    "depose_le_site": o.depose_le_site}, ensure_ascii=False) + "\n")
+                sortie.flush()
                 n += 1
+            conf.sur_observation = ecrire
+            try:
+                for o in parcourir_fn(c["points_entree"], depot, conf):
+                    pass                        # déjà écrit au fil de l'eau par le rappel
+            except Exception as e:          # une collectivité en panne ne doit jamais arrêter les autres
+                print(f"ERREUR {c['id']} parcours : {type(e).__name__} {e}", flush=True)
+            for base in c.get("wp_media", []):
+                try:
+                    for o in decouvrir_wp_media(base, c.get("wp_termes", ["conseil"]), depot, Navigateur(conf),
+                                                duree_max=duree_max, pages_max=c.get("wp_pages", 3),
+                                                filtre=c.get("wp_filtre", "")):
+                        ecrire(o)
+                except Exception as e:
+                    print(f"ERREUR {c['id']} api média : {type(e).__name__} {e}", flush=True)
     return n
 
 

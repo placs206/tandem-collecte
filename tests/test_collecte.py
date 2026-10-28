@@ -56,7 +56,7 @@ def serveur():
 
 
 def cfg(**kw):
-    return Config(delai=0.0, **kw)
+    return Config(delai=0.0, attente_reprise=0.0, **kw)
 
 
 def test_archive_intacte_et_empreinte(serveur, tmp_path):
@@ -81,7 +81,7 @@ def test_robots_injoignable_on_s_abstient(serveur, tmp_path):
     Site.etat["status_force"]["/robots.txt"] = 500
     obs = parcourir([serveur + "/"], DepotFichiers(str(tmp_path)), cfg())
     assert obs and all(o.statut == "non_constatable" for o in obs)
-    assert Site.etat["hits"] == ["/robots.txt"]                    # aucune page demandée
+    assert set(Site.etat["hits"]) == {"/robots.txt"}               # aucune page demandée (le robots.txt est retenté)
 
 
 def test_blocage_403_n_est_pas_un_non(serveur, tmp_path):
@@ -192,3 +192,15 @@ def test_decouvrir_wp_media_sans_recherche_avec_filtre():
     o = decouvrir_wp_media("https://a.fr", [""], DepotFichiers(tempfile.mkdtemp()), Nav(), filtre="conseil|PV")
     assert [x.url for x in o] == ["https://a.fr/u/PV-Conseil.pdf"]
     assert not any(u.endswith("arrete-voirie.pdf") for u in vus)
+
+
+def test_reprises_apres_erreur_reseau():
+    from collecte import Navigateur, Config
+    n = Navigateur(Config(delai=0, attente_reprise=0.0), dormir=lambda s: None)
+    appels = []
+
+    def une_fois(url):
+        appels.append(url)
+        return Reponse(url, 0, b"", "", "reseau:TimeoutError") if len(appels) < 3 else Reponse(url, 200, b"ok", "text/html")
+    n._une_fois = une_fois
+    assert n._brut("https://a.fr/").statut == 200 and len(appels) == 3
