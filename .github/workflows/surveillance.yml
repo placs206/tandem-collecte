@@ -1,0 +1,43 @@
+name: surveillance
+# Veille indépendante du robot : détecte l'absence de réussite et l'absence de progression, ouvre une alerte (issue) et la ferme au retour à la normale.
+on:
+  schedule:
+    - cron: "43 */3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+  actions: write
+concurrency:
+  group: surveillance
+  cancel-in-progress: true
+jobs:
+  veille:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Diagnostic
+        id: diag
+        run: python surveillance.py --etat etat/statut.json --sortie "$GITHUB_OUTPUT"
+      - name: Relancer le robot si rien ne tourne et qu'il est en retard
+        if: steps.diag.outputs.relancer == 'oui'
+        run: gh workflow run collecte.yml --repo ${{ github.repository }}
+      - name: Ouvrir ou mettre à jour l'alerte
+        if: steps.diag.outputs.alerte == 'oui'
+        run: |
+          gh label create alerte-robot --color B60205 --description "Anomalie du robot de collecte" 2>/dev/null || true
+          titre="Robot de collecte : anomalie détectée"
+          n=$(gh issue list --state open --label alerte-robot --search "$titre" --json number --jq '.[0].number')
+          if [ -n "$n" ]; then gh issue comment "$n" --body-file diagnostic.md; else gh issue create --title "$titre" --body-file diagnostic.md --label alerte-robot; fi
+      - name: Fermer l'alerte quand tout va bien
+        if: steps.diag.outputs.alerte == 'non'
+        run: |
+          for n in $(gh issue list --state open --label alerte-robot --json number --jq '.[].number'); do
+            gh issue close "$n" --comment "Retour à la normale : $(cat diagnostic.md | head -3)"
+          done

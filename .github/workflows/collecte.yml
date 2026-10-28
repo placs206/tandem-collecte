@@ -1,39 +1,61 @@
 name: collecte
+# Autonome : le cron se relance toutes les 6 h. Chaque lancement soit reprend un passage interrompu, soit en démarre un
+# si le dernier passage complet a plus de 20 h, soit ne fait rien (quelques secondes facturées).
 on:
   schedule:
-    - cron: "17 4 * * *"
+    - cron: "17 */6 * * *"
   workflow_dispatch:
     inputs:
       seulement:
         description: "Identifiant d'une seule collectivité (vide = toutes)"
         required: false
         default: ""
+      force:
+        description: "Démarrer un passage même si le dernier est récent"
+        type: boolean
+        default: false
 permissions:
   contents: write
+  issues: write
+concurrency:
+  group: collecte
+  cancel-in-progress: false        # jamais deux passages en même temps ; un lancement en attente prend la suite
 jobs:
   collecte:
     runs-on: ubuntu-latest
-    timeout-minutes: 340
+    timeout-minutes: 350
+    env:
+      CI: "true"
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: python run_collecte.py --archive archive --manifeste manifeste.jsonl --duree-max 7200 ${{ inputs.seulement && format('--seulement {0}', inputs.seulement) || '' }}
-      - uses: actions/upload-artifact@v4
-        if: always()
+      - name: Collecte (reprise, nouveau passage ou rien)
+        id: collecte
+        timeout-minutes: 340
+        run: >
+          python run_collecte.py --cycle --archive archive --manifeste manifeste.jsonl --etat etat/statut.json
+          --duree-max 7200 --fin-avant-minutes 320
+          ${{ inputs.seulement && format('--seulement {0}', inputs.seulement) || '' }}
+          ${{ inputs.force && '--force' || '' }}
+      - name: Conserver les documents archivés (14 jours)
+        if: always() && steps.collecte.outputs.decision != 'rien'
+        continue-on-error: true      # quota de stockage dépassé : le manifeste et l'état restent dans git
+        uses: actions/upload-artifact@v4
         with:
           name: archive-collecte
-          path: |
-            archive
-            manifeste.jsonl
-          retention-days: 90
-      - name: Historiser le manifeste
-        if: always()
+          path: archive
+          retention-days: 14
+      - name: Dernier point de reprise
+        if: always() && steps.collecte.outputs.decision != 'rien'
+        run: bash scripts/sauvegarde.sh
+      - name: Alerte immédiate en cas d'échec
+        if: failure()
         run: |
-          git config user.name collecte-bot
-          git config user.email collecte-bot@users.noreply.github.com
-          git add manifeste.jsonl
-          git commit -m "manifeste $(date -u +%F)" || true
-          git pull --rebase -X theirs origin main || true
-          git push || true
+          gh label create alerte-robot --color B60205 --description "Anomalie du robot de collecte" 2>/dev/null || true
+          titre="Robot de collecte : échec du lancement"
+          corps="Le lancement ${{ github.run_id }} a échoué : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}. Le prochain lancement (6 h) reprend le passage interrompu."
+          n=$(gh issue list --state open --label alerte-robot --search "$titre" --json number --jq '.[0].number')
+          if [ -n "$n" ]; then gh issue comment "$n" --body "$corps"; else gh issue create --title "$titre" --body "$corps" --label alerte-robot; fi
