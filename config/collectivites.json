@@ -31,7 +31,20 @@
         "https://ampmetropole.fr/metropole/actes-et-seances/publicite-des-actes/",
         "https://ampmetropole.fr/metropole/actes-et-seances/les-deliberations/",
         "https://ampmetropole.fr/metropole/les-finances/publications-legales/",
-        "https://deliberations.ampmetropole.fr/"
+        "https://deliberations.ampmetropole.fr/",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2024-12-05&dateSeanceFin=2024-12-05&motCle=",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2025-02-27&dateSeanceFin=2025-02-27&motCle=",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2025-06-26&dateSeanceFin=2025-06-26&motCle=",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2025-06-30&dateSeanceFin=2025-06-30&motCle=",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2025-09-18&dateSeanceFin=2025-09-18&motCle=",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2025-10-06&dateSeanceFin=2025-10-06&motCle=",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2025-12-15&dateSeanceFin=2025-12-15&motCle=",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2026-04-07&dateSeanceFin=2026-04-07&motCle=",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2026-04-16&dateSeanceFin=2026-04-16&motCle=",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2026-04-28&dateSeanceFin=2026-04-28&motCle=",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2026-06-24&dateSeanceFin=2026-06-24&motCle=",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2026-09-10&dateSeanceFin=2026-09-10&motCle=",
+        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=DELIBERATION&commission=&dateSeanceDebut=2026-10-15&dateSeanceFin=2026-10-15&motCle="
       ],
       "hotes_autorises": [
         "ampmetropole.fr",
