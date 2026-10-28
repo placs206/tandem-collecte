@@ -195,7 +195,7 @@ def test_decouvrir_wp_media_sans_recherche_avec_filtre():
 
 
 def test_reprises_apres_erreur_reseau():
-    from collecte import Navigateur, Config
+    from collecte import Navigateur, Config, Reponse
     n = Navigateur(Config(delai=0, attente_reprise=0.0), dormir=lambda s: None)
     appels = []
 
