@@ -58,7 +58,11 @@
         ""
       ],
       "wp_pages": 120,
-      "wp_filtre": "(conseil|PV|convocation|ordre-du-jour|compte-rendu|proces-verbal|deliberations-votees|liste-des-deliberations|affichage)"
+      "wp_filtre": "(conseil|PV|convocation|ordre-du-jour|compte-rendu|proces-verbal|deliberations-votees|liste-des-deliberations|affichage)",
+      "pages_max": 1500,
+      "sans_telechargement": [
+        "deliberations.ampmetropole.fr/documents/"
+      ]
     }
   ]
 }

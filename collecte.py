@@ -38,6 +38,7 @@ class Config:
     pages_max: int = 400          # garde-fou par collectivité et par passage
     duree_max: float = 0.0        # secondes par collectivité (0 = illimité) ; l'arrêt est propre, les observations sont gardées
     verbeux: bool = False
+    sans_telechargement: tuple = ()   # fragments d'URL de documents à lister sans les télécharger (ex. 4 000 délibérations d'un portail)
     attente_reprise: float = 5.0   # secondes × essai² entre deux essais (réseau, 5xx)
     sur_observation: object = None   # rappel appelé à chaque observation (écriture immédiate : rien n'est perdu si le passage est coupé)
     hotes_autorises: Set[str] = field(default_factory=set)   # en plus de l'hôte du point d'entrée
@@ -256,6 +257,9 @@ def parcourir(points_entree: List[str], depot: Depot, config: Optional[Config] =
             continue
         vu.add(url)
         if urlparse(url).netloc not in hotes:
+            continue
+        if cfg.sans_telechargement and _est_document(url) and any(m in url for m in cfg.sans_telechargement):
+            obs.append(Observation(url, hote_page, "liste", est_document=True))     # vu dans une liste, non téléchargé
             continue
         rep = nav.get(url)
         if cfg.verbeux:

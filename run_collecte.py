@@ -33,6 +33,7 @@ def passage(cfg_json: dict, archive: str, manifeste: str, seulement=None, delai=
             if seulement and c["id"] != seulement:
                 continue
             conf = Config(user_agent=f"TandemScoreCitoyenBot/0.1 (+contact: {contact})", delai=delai, duree_max=duree_max, verbeux=True,
+                          pages_max=c.get("pages_max", 400), sans_telechargement=tuple(c.get("sans_telechargement", [])),
                           hotes_autorises=set(c.get("hotes_autorises", [])))
             depot = DepotFichiers(os.path.join(archive, c["id"]))
             def ecrire(o, coll=c):

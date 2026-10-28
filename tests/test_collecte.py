@@ -204,3 +204,10 @@ def test_reprises_apres_erreur_reseau():
         return Reponse(url, 0, b"", "", "reseau:TimeoutError") if len(appels) < 3 else Reponse(url, 200, b"ok", "text/html")
     n._une_fois = une_fois
     assert n._brut("https://a.fr/").statut == 200 and len(appels) == 3
+
+
+def test_liste_sans_telechargement(serveur, tmp_path):
+    obs = parcourir([serveur + "/"], DepotFichiers(str(tmp_path)), cfg(sans_telechargement=("/docs/",)))
+    docs = [o for o in obs if o.url.endswith(".pdf")]
+    assert docs and all(o.statut == "liste" and o.sha256 is None for o in docs)
+    assert not any(h.startswith("/docs/") for h in Site.etat["hits"])
