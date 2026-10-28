@@ -211,3 +211,10 @@ def test_liste_sans_telechargement(serveur, tmp_path):
     docs = [o for o in obs if o.url.endswith(".pdf")]
     assert docs and all(o.statut == "liste" and o.sha256 is None for o in docs)
     assert not any(h.startswith("/docs/") for h in Site.etat["hits"])
+
+
+def test_pages_de_pagination_toutes_les_pages():
+    from collecte import pages_de_pagination
+    liens = [("https://p.fr/2?q=1", "2"), ("https://p.fr/33?q=1", "\u00bb Dernière")]
+    u = pages_de_pagination(liens)
+    assert len(u) == 32 and u[0] == "https://p.fr/2?q=1" and u[-1] == "https://p.fr/33?q=1"

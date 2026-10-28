@@ -224,6 +224,21 @@ def _piste(url: str, texte: str) -> bool:
     return any(m in s for m in MOTS_PISTES)
 
 
+def pages_de_pagination(liens: List[Tuple[str, str]]) -> List[str]:
+    """Si la page a un lien « Dernière » de la forme /N?requête, renvoie les adresses de toutes les pages 2..N
+    (la pagination du portail n'affiche que quelques numéros : sans cela on s'arrête à quelques pages)."""
+    import re as _re
+    out: List[str] = []
+    for url, texte in liens:
+        if "dernière" in texte.lower() or "derniere" in texte.lower():
+            u = urlsplit(url)
+            m = _re.match(r"^/(\d+)$", u.path)
+            if m and int(m.group(1)) <= 500:
+                n = int(m.group(1))
+                out += [urlunsplit((u.scheme, u.netloc, f"/{i}", u.query, "")) for i in range(2, n + 1)]
+    return out
+
+
 class _Suivi(list):
     """Liste d'observations qui prévient un rappel à chaque ajout."""
     def __init__(self, base, rappel):
@@ -277,7 +292,11 @@ def parcourir(points_entree: List[str], depot: Depot, config: Optional[Config] =
         pages += 1
         if prof >= cfg.profondeur_max or "html" not in rep.mime.lower():
             continue
-        for lien, texte in extraire_liens(rep.contenu.decode("utf-8", "replace"), rep.url or url):
+        liens = extraire_liens(rep.contenu.decode("utf-8", "replace"), rep.url or url)
+        for lien in pages_de_pagination(liens):
+            if lien not in vu:
+                file.append((lien, url, prof))
+        for lien, texte in liens:
             if lien in vu:
                 continue
             if _est_document(lien) or _piste(lien, texte):
