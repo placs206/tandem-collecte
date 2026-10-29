@@ -7,13 +7,13 @@
   ]
  },
  "dernier_passage_complet": "2026-10-28T05:48:36+00:00",
- "derniere_observation": "2026-10-28T20:03:06.613445+00:00",
- "derniere_execution": "2026-10-28T19:42:17.058933+00:00",
+ "derniere_observation": "2026-10-29T01:10:52.106701+00:00",
+ "derniere_execution": "2026-10-29T01:00:51.520133+00:00",
  "derniere_erreur": null,
  "erreurs": [],
  "tentatives": {
   "salon-de-provence": 1
  },
- "executions": 1,
+ "executions": 2,
  "note": "Initialisé à la main d'après le dernier passage planifié réussi (run 40634673640). Mis à jour ensuite par run_collecte.py --cycle."
 }
