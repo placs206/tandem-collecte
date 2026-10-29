@@ -1,0 +1,31 @@
+name: rapport
+# Toutes les 6 h : régénère RAPPORT.md (état du robot, en français simple). Aucun e-mail, aucune notification.
+on:
+  schedule:
+    - cron: "51 */6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: rapport
+  cancel-in-progress: true
+jobs:
+  rapport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Générer et publier le rapport
+        run: |
+          python rapport.py
+          git config user.name collecte-bot
+          git config user.email collecte-bot@users.noreply.github.com
+          git add RAPPORT.md
+          git commit -qm "rapport $(date -u +%FT%TZ)" || exit 0
+          for essai in 1 2 3; do
+            git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && exit 0
+            git rebase --abort 2>/dev/null; sleep $((essai * 5))
+          done
