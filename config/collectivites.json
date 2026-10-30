@@ -1,68 +1,73 @@
 {
-  "contact_robot": "placs206@gmail.com",
-  "collectivites": [
-    {
-      "id": "salon-de-provence",
-      "siren": "211301033",
-      "type": "commune",
-      "points_entree": [
-        "https://www.salondeprovence.fr/"
-      ],
-      "notes": "Pages à ajouter à la main : Démocratie locale / Conseil municipal / Délibérations / Finances (DN-09).",
-      "wp_media": [
-        "https://www.salondeprovence.fr"
-      ],
-      "wp_termes": [
-        "conseil",
-        "deliberation",
-        "proces-verbal",
-        "compte-rendu",
-        "ordre-du-jour",
-        "budget",
-        "rapport"
-      ]
-    },
-    {
-      "id": "metropole-amp",
-      "siren": "200054807",
-      "type": "metropole",
-      "points_entree": [
-        "https://ampmetropole.fr/metropole/actes-et-seances/le-conseil-de-la-metropole-en-direct/",
-        "https://ampmetropole.fr/metropole/actes-et-seances/publicite-des-actes/",
-        "https://ampmetropole.fr/metropole/actes-et-seances/les-deliberations/",
-        "https://ampmetropole.fr/metropole/les-finances/publications-legales/",
-        "https://deliberations.ampmetropole.fr/",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2024-12-05&dateSeanceFin=2024-12-05&motCle=",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-02-27&dateSeanceFin=2025-02-27&motCle=",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-06-26&dateSeanceFin=2025-06-26&motCle=",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-06-30&dateSeanceFin=2025-06-30&motCle=",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-09-18&dateSeanceFin=2025-09-18&motCle=",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-10-06&dateSeanceFin=2025-10-06&motCle=",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-12-15&dateSeanceFin=2025-12-15&motCle=",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2026-04-07&dateSeanceFin=2026-04-07&motCle=",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2026-04-16&dateSeanceFin=2026-04-16&motCle=",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2026-04-28&dateSeanceFin=2026-04-28&motCle=",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2026-06-24&dateSeanceFin=2026-06-24&motCle=",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2026-09-10&dateSeanceFin=2026-09-10&motCle=",
-        "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2026-10-15&dateSeanceFin=2026-10-15&motCle="
-      ],
-      "hotes_autorises": [
-        "ampmetropole.fr",
-        "deliberations.ampmetropole.fr"
-      ],
-      "notes": "Portail : pagination /N?typeDocument=&domaine=METROPOLE ; incident technique signalé sur 'Les délibérations'.",
-      "wp_media": [
-        "https://ampmetropole.fr"
-      ],
-      "wp_termes": [
-        ""
-      ],
-      "wp_pages": 120,
-      "wp_filtre": "(conseil|PV|convocation|ordre-du-jour|compte-rendu|proces-verbal|deliberations-votees|liste-des-deliberations|affichage)",
-      "pages_max": 1500,
-      "sans_telechargement": [
-        "deliberations.ampmetropole.fr/documents/"
-      ]
-    }
-  ]
+ "contact_robot": "placs206@gmail.com",
+ "collectivites": [
+  {
+   "id": "salon-de-provence",
+   "siren": "211301033",
+   "type": "commune",
+   "points_entree": [
+    "https://www.salondeprovence.fr/"
+   ],
+   "notes": "Pages à ajouter à la main : Démocratie locale / Conseil municipal / Délibérations / Finances (DN-09).",
+   "wp_media": [
+    "https://www.salondeprovence.fr"
+   ],
+   "wp_termes": [
+    "conseil",
+    "deliberation",
+    "proces-verbal",
+    "compte-rendu",
+    "ordre-du-jour",
+    "budget",
+    "rapport"
+   ]
+  },
+  {
+   "id": "metropole-amp",
+   "siren": "200054807",
+   "type": "metropole",
+   "points_entree": [
+    "https://ampmetropole.fr/metropole/actes-et-seances/le-conseil-de-la-metropole-en-direct/",
+    "https://ampmetropole.fr/metropole/actes-et-seances/publicite-des-actes/",
+    "https://ampmetropole.fr/metropole/actes-et-seances/les-deliberations/",
+    "https://ampmetropole.fr/metropole/les-finances/publications-legales/",
+    "https://deliberations.ampmetropole.fr/",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2024-12-05&dateSeanceFin=2024-12-05&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-02-27&dateSeanceFin=2025-02-27&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-06-26&dateSeanceFin=2025-06-26&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-06-30&dateSeanceFin=2025-06-30&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-09-18&dateSeanceFin=2025-09-18&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-10-06&dateSeanceFin=2025-10-06&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-12-15&dateSeanceFin=2025-12-15&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2026-04-07&dateSeanceFin=2026-04-07&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2026-04-16&dateSeanceFin=2026-04-16&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2026-04-28&dateSeanceFin=2026-04-28&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2026-06-24&dateSeanceFin=2026-06-24&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2026-09-10&dateSeanceFin=2026-09-10&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2026-10-15&dateSeanceFin=2026-10-15&motCle=",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-12-15&dateSeanceFin=2025-12-15&motCle=Pôle%20Aéronautique%20Istres",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-12-15&dateSeanceFin=2025-12-15&motCle=Projet%20Partenarial%20d%27Aménagement%20golfe%20de%20Fos",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-12-15&dateSeanceFin=2025-12-15&motCle=Safe%20Place%20For%20Science",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-12-15&dateSeanceFin=2025-12-15&motCle=repos%20dominical%202026",
+    "https://deliberations.ampmetropole.fr/?domaine=METROPOLE&typeInstance=&typeDocument=&commission=&dateSeanceDebut=2025-12-15&dateSeanceFin=2025-12-15&motCle=immobiliers%20d%27entreprises%20tarifs"
+   ],
+   "hotes_autorises": [
+    "ampmetropole.fr",
+    "deliberations.ampmetropole.fr"
+   ],
+   "notes": "Portail : pagination /N?typeDocument=&domaine=METROPOLE ; incident technique signalé sur 'Les délibérations'.",
+   "wp_media": [
+    "https://ampmetropole.fr"
+   ],
+   "wp_termes": [
+    ""
+   ],
+   "wp_pages": 120,
+   "wp_filtre": "(conseil|PV|convocation|ordre-du-jour|compte-rendu|proces-verbal|deliberations-votees|liste-des-deliberations|affichage)",
+   "pages_max": 1500,
+   "sans_telechargement": [
+    "deliberations.ampmetropole.fr/documents/"
+   ]
+  }
+ ]
 }
