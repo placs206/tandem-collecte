@@ -1,13 +1,13 @@
 # Rapport du robot de collecte
 
-*Mis à jour automatiquement toutes les 6 h — dernière mise à jour le 30/10 à 14 h 43 (heure de Paris).*
+*Mis à jour automatiquement toutes les 6 h — dernière mise à jour le 30/10 à 20 h 29 (heure de Paris).*
 
 🟢 **Tout va bien** : le dernier passage s'est terminé sans erreur.
 
 | | |
 |---|---|
-| Dernier passage complet | 30/10 à 14 h 19 (il y a moins d'une heure) |
-| Dernière activité | 30/10 à 14 h 19 (il y a moins d'une heure) |
+| Dernier passage complet | 30/10 à 14 h 19 (il y a 6 h) |
+| Dernière activité | 30/10 à 14 h 19 (il y a 6 h) |
 | Passage en cours | terminé — 2 collectivité(s) traitée(s) |
 | Erreurs récentes | 0 |
 
