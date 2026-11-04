@@ -1,9 +1,10 @@
 name: collecte
-# Autonome : le cron se relance toutes les 6 h. Chaque lancement soit reprend un passage interrompu, soit en démarre un
-# si le dernier passage complet a plus de 20 h, soit ne fait rien (quelques secondes facturées).
+# Autonome : deux lancements par jour (13 h 17 et 1 h 17 UTC). Chaque lancement soit reprend un passage interrompu, soit en
+# démarre un si le dernier passage complet a plus de 20 h, soit ne fait rien. Deux lancements suffisent pour une collecte
+# quotidienne avec une reprise possible 12 h plus tard ; chaque lancement coûte au moins 1 minute du quota GitHub.
 on:
   schedule:
-    - cron: "17 */6 * * *"
+    - cron: "17 1,13 * * *"
   workflow_dispatch:
     inputs:
       seulement:
