@@ -32,11 +32,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Découper l'ancien manifeste.jsonl s'il existe encore (une seule fois, vérifié, sans perte)
+        run: python scripts/decouper_manifeste.py manifeste.jsonl manifeste
       - name: Collecte (reprise, nouveau passage ou rien)
         id: collecte
         timeout-minutes: 340
         run: >
-          python run_collecte.py --cycle --archive archive --manifeste manifeste.jsonl --etat etat/statut.json
+          python run_collecte.py --cycle --archive archive --manifeste manifeste --etat etat/statut.json
           --duree-max 7200 --fin-avant-minutes 320
           ${{ inputs.seulement && format('--seulement {0}', inputs.seulement) || '' }}
           ${{ inputs.force && '--force' || '' }}
