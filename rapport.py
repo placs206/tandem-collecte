@@ -73,22 +73,18 @@ def construire(etat: dict, lignes: list[dict], maintenant: datetime) -> str:
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--etat", default="etat/statut.json"); ap.add_argument("--manifeste", default="manifeste.jsonl")
+    ap.add_argument("--etat", default="etat/statut.json"); ap.add_argument("--manifeste", default="manifeste")
     ap.add_argument("--sortie", default="RAPPORT.md")
     a = ap.parse_args()
     try:
         etat = json.load(open(a.etat, encoding="utf-8"))
     except (OSError, ValueError):
         etat = {}
-    lignes = []
+    from run_collecte import lire_manifeste     # fichier unique (ancien format) ou dossier manifeste/
     try:
-        for l in open(a.manifeste, encoding="utf-8"):
-            try:
-                lignes.append(json.loads(l))
-            except ValueError:
-                pass
+        lignes = list(lire_manifeste(a.manifeste))
     except OSError:
-        pass
+        lignes = []
     texte = construire(etat, lignes, datetime.now(timezone.utc))
     open(a.sortie, "w", encoding="utf-8").write(texte)
     print(texte)

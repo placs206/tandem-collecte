@@ -10,17 +10,53 @@ from datetime import datetime, timedelta, timezone
 from collecte import Config, DepotFichiers, Navigateur, decouvrir_wp_media, parcourir
 
 
-def charger_premieres_captures(manifeste: str) -> dict:
-    vu = {}
-    if os.path.exists(manifeste):
-        with open(manifeste, encoding="utf-8") as f:
+# Manifeste : soit un fichier unique (ancien format, « manifeste.jsonl »), soit un dossier (« manifeste/ ») avec un
+# fichier par collectivité et par passage : manifeste/<collectivité>/<passage>.jsonl. Le dossier évite la limite de
+# 100 Mo par fichier de GitHub (anomalie A-03 de l'audit). Pendant la transition, « manifeste.jsonl » à côté du dossier
+# est lu aussi (en premier : c'est le plus ancien).
+def fichiers_manifeste(manifeste: str) -> list:
+    if os.path.isfile(manifeste):
+        return [manifeste]
+    out = [manifeste + ".jsonl"] if os.path.isfile(manifeste + ".jsonl") else []
+    if os.path.isdir(manifeste):
+        trouves = []
+        for racine, _, noms in os.walk(manifeste):
+            trouves += [os.path.join(racine, n) for n in noms if n.endswith(".jsonl")]
+        out += sorted(trouves)
+    return out
+
+
+def lire_manifeste(manifeste: str):
+    for chemin in fichiers_manifeste(manifeste):
+        with open(chemin, encoding="utf-8") as f:
             for l in f:
                 try:
-                    o = json.loads(l)
+                    yield json.loads(l)
                 except ValueError:
-                    continue                # ligne coupée par un arrêt brutal : ignorée
-                if o.get("sha256") and o.get("premiere_capture"):
-                    vu.setdefault((o["collectivite"], o["url"], o["sha256"]), o["premiere_capture"])
+                    continue                # ligne coupée par un arrêt brutal : ignorée, jamais fatale
+
+
+def fichier_passage(manifeste: str, collectivite: str, passage_id: str) -> str:
+    if manifeste.endswith(".jsonl") or os.path.isfile(manifeste):
+        return manifeste                    # ancien format : un seul fichier
+    return os.path.join(manifeste, collectivite, passage_id.replace(":", "-") + ".jsonl")
+
+
+def ouvrir_en_ajout(chemin: str):
+    os.makedirs(os.path.dirname(chemin) or ".", exist_ok=True)
+    if os.path.exists(chemin) and os.path.getsize(chemin):
+        with open(chemin, "rb+") as f:      # dernier octet : si la ligne a été coupée, on la termine avant d'ajouter
+            f.seek(-1, os.SEEK_END)
+            if f.read(1) != b"\n":
+                f.write(b"\n")
+    return open(chemin, "a", encoding="utf-8")
+
+
+def charger_premieres_captures(manifeste: str) -> dict:
+    vu = {}
+    for o in lire_manifeste(manifeste):
+        if o.get("sha256") and o.get("premiere_capture"):
+            vu.setdefault((o["collectivite"], o["url"], o["sha256"]), o["premiere_capture"])
     return vu
 
 
@@ -42,20 +78,15 @@ def passage(cfg_json: dict, archive: str, manifeste: str, seulement=None, delai=
     premieres = charger_premieres_captures(manifeste)
     maintenant = passage_id or datetime.now(timezone.utc).isoformat()
     n = 0
-    if os.path.exists(manifeste) and os.path.getsize(manifeste):
-        with open(manifeste, "rb+") as f:           # dernier octet : si la ligne a été coupée, on la termine avant d'ajouter
-            f.seek(-1, os.SEEK_END)
-            if f.read(1) != b"\n":
-                f.write(b"\n")
-    with open(manifeste, "a", encoding="utf-8") as sortie:
-        for c in cfg_json["collectivites"]:
-            if seulement and c["id"] != seulement:
-                continue
-            if c["id"] in terminees:
-                continue
-            reste = (fin_avant - time.time()) if fin_avant else None
-            if reste is not None and reste < 60:
-                break                       # plus assez de temps : la suite sera reprise au prochain lancement
+    for c in cfg_json["collectivites"]:
+        if seulement and c["id"] != seulement:
+            continue
+        if c["id"] in terminees:
+            continue
+        reste = (fin_avant - time.time()) if fin_avant else None
+        if reste is not None and reste < 60:
+            break                           # plus assez de temps : la suite sera reprise au prochain lancement
+        with ouvrir_en_ajout(fichier_passage(manifeste, c["id"], maintenant)) as sortie:
             duree_c = duree_max if reste is None else (min(duree_max, reste) if duree_max else reste)
             coupe_par_echeance = reste is not None and (not duree_max or reste < duree_max)
             conf = Config(user_agent=f"TandemScoreCitoyenBot/0.1 (+contact: {contact})", delai=delai, duree_max=duree_c, verbeux=True,
@@ -145,16 +176,30 @@ def decider(etat: dict, maintenant: datetime, intervalle_h: float = 20.0, abando
 
 def ids_deja_ecrits(manifeste: str, passage_id: str) -> set:
     deja = set()
-    if os.path.exists(manifeste):
-        with open(manifeste, encoding="utf-8") as f:
-            for l in f:
-                try:
-                    o = json.loads(l)
-                except ValueError:
-                    continue                # ligne coupée par un arrêt brutal : ignorée, jamais fatale
-                if o.get("passage") == passage_id:
-                    deja.add((o["collectivite"], o["url"], o.get("sha256"), o["statut"]))
+    for o in lire_manifeste(manifeste):
+        if o.get("passage") == passage_id:
+            deja.add((o["collectivite"], o["url"], o.get("sha256"), o["statut"]))
     return deja
+
+
+def controle_qualite(manifeste: str, passage_id: str, ids: set, seuil: float = 0.5, historique: int = 5) -> dict:
+    """Anomalie A-04 : un passage « complet » n'est pas forcément valide. Pour chaque collectivité, compare le nombre
+    d'adresses observées (lues ou listées) à la médiane des `historique` passages précédents ; en dessous de `seuil`
+    fois cette médiane, ou à zéro, la collectivité est « dégradée » (alerte). Sans historique : pas de jugement."""
+    par = {}                                # (collectivité, passage) -> adresses observées
+    for o in lire_manifeste(manifeste):
+        if o.get("collectivite") in ids and o.get("statut") in ("present", "liste"):
+            par.setdefault((o["collectivite"], o["passage"]), set()).add(o["url"])
+    res = {"passage": passage_id, "seuil": seuil, "collectivites": {}, "degradees": []}
+    for cid in sorted(ids):
+        n = len(par.get((cid, passage_id), ()))
+        avant = sorted(p for (c, p) in par if c == cid and p < passage_id)[-historique:]
+        valeurs = sorted(len(par[(cid, p)]) for p in avant)
+        ref = valeurs[len(valeurs) // 2] if valeurs else None
+        res["collectivites"][cid] = {"observees": n, "reference": ref}
+        if n == 0 or (ref and n < seuil * ref):
+            res["degradees"].append(cid)
+    return res
 
 
 def cycle(cfg_json: dict, archive: str, manifeste: str, etat_chemin: str, intervalle_h=20.0, fin_avant=None, seulement=None,
@@ -217,20 +262,26 @@ def cycle(cfg_json: dict, archive: str, manifeste: str, etat_chemin: str, interv
         p["termine"] = True
         etat["dernier_passage_complet"] = _maintenant().isoformat()
         etat["derniere_reussite_id"] = p["id"]
+        try:
+            etat["qualite"] = controle_qualite(manifeste, p["id"], attendues)
+        except Exception as e:              # le contrôle ne doit jamais empêcher d'enregistrer le passage
+            etat["qualite"] = {"passage": p["id"], "erreur": f"{type(e).__name__} {e}"[:300], "degradees": []}
     enregistrer()
     return d
 
 
 def sauvegarde_git(script="scripts/sauvegarde.sh"):
     if os.environ.get("CI") and os.path.exists(script):
-        subprocess.run(["bash", script], check=False, timeout=300)
+        r = subprocess.run(["bash", script], check=False, timeout=300)
+        if r.returncode != 0:               # signalé (ALERTE dans le journal) sans arrêter la collecte
+            raise RuntimeError(f"point de reprise non publié (code {r.returncode})")
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default="config/collectivites.json")
     ap.add_argument("--archive", default="archive")
-    ap.add_argument("--manifeste", default="manifeste.jsonl")
+    ap.add_argument("--manifeste", default="manifeste", help="dossier (un fichier par collectivité et par passage) ou ancien fichier .jsonl")
     ap.add_argument("--seulement")
     ap.add_argument("--delai", type=float, default=2.0)
     ap.add_argument("--duree-max", type=float, default=0.0, help="secondes par collectivité")

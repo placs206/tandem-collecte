@@ -23,6 +23,11 @@ def diagnostiquer(etat: dict, maintenant: datetime, retard_h=36.0, sans_progres_
     rec = age("derniere_erreur")
     if rec is not None and rec < timedelta(hours=6):
         anomalies.append("Erreurs récentes : " + "; ".join(f"{e['collectivite']} {e['etape']}" for e in etat.get("erreurs", [])[-3:]))
+    q = etat.get("qualite") or {}
+    if q.get("degradees") and q.get("passage") == etat.get("derniere_reussite_id"):
+        detail = ", ".join(f"{c} ({q['collectivites'][c]['observees']} adresses, habituellement {q['collectivites'][c]['reference']})"
+                           if c in q.get("collectivites", {}) else c for c in q["degradees"])
+        anomalies.append(f"Dernier passage incomplet pour : {detail}. Le site a peut-être changé ou bloqué le robot.")
     relancer = bool(anomalies) and (reussite is None or reussite > timedelta(hours=retard_h))
     return anomalies, relancer
 
