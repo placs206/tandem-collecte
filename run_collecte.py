@@ -5,7 +5,8 @@ Usage : python run_collecte.py [--archive DIR] [--manifeste FICHIER] [--seulemen
 publication tardive, P40c/V13/V21). Les octets des documents ne sont jamais modifiés (DN-32).
 """
 from __future__ import annotations
-import argparse, json, os, subprocess, time
+import argparse, json, os, subprocess, threading, time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from collecte import Config, DepotFichiers, Navigateur, decouvrir_wp_media, parcourir
 
@@ -60,9 +61,31 @@ def charger_premieres_captures(manifeste: str) -> dict:
     return vu
 
 
+def hotes(c: dict) -> set:
+    from urllib.parse import urlparse
+    h = {urlparse(u).netloc for u in c.get("points_entree", []) + c.get("wp_media", [])} | set(c.get("hotes_autorises", []))
+    return {x.lower().removeprefix("www.") for x in h if x}
+
+
+def files_paralleles(collectivites: list) -> list:
+    """Regroupe les collectivités qui partagent un site (même hôte) dans une même file, traitée l'une après l'autre ;
+    des files différentes n'ont aucun site en commun et peuvent tourner en même temps sans solliciter un site davantage
+    (une requête toutes les `delai` secondes par site, DN-10). L'ordre de la configuration est conservé dans chaque file."""
+    files: list = []                        # [(hôtes, [collectivités])]
+    for c in collectivites:
+        h = hotes(c)
+        lies = [f for f in files if f[0] & h]
+        for f in lies:
+            files.remove(f)
+        fusion = (set().union(h, *[f[0] for f in lies]), [x for f in lies for x in f[1]] + [c])
+        fusion[1].sort(key=collectivites.index)
+        files.append(fusion)
+    return [cs for _, cs in files]
+
+
 def passage(cfg_json: dict, archive: str, manifeste: str, seulement=None, delai=2.0, parcourir_fn=parcourir, duree_max=0.0,
             passage_id=None, deja=None, terminees=None, fin_avant=None, apres_collectivite=None, apres_observation=None,
-            erreurs=None) -> int:
+            erreurs=None, paralleles=True) -> int:
     """Un passage. Paramètres de reprise (tous optionnels, comportement inchangé sans eux) :
     passage_id : reprend un passage interrompu (la date de passage et les premières captures restent celles du passage) ;
     deja : ensemble (collectivité, url, sha256, statut) déjà écrit pour ce passage : jamais écrit deux fois ;
@@ -78,27 +101,30 @@ def passage(cfg_json: dict, archive: str, manifeste: str, seulement=None, delai=
     premieres = charger_premieres_captures(manifeste)
     maintenant = passage_id or datetime.now(timezone.utc).isoformat()
     n = 0
-    for c in cfg_json["collectivites"]:
-        if seulement and c["id"] != seulement:
-            continue
-        if c["id"] in terminees:
-            continue
+    verrou = threading.RLock()              # état partagé (dédoublonnage, erreurs, rappels de sauvegarde) entre les files
+    a_faire = [c for c in cfg_json["collectivites"] if (not seulement or c["id"] == seulement) and c["id"] not in terminees]
+
+    def traiter(c) -> bool:
+        """Une collectivité. Renvoie False s'il ne reste plus assez de temps (la file s'arrête)."""
+        nonlocal n
         reste = (fin_avant - time.time()) if fin_avant else None
         if reste is not None and reste < 60:
-            break                           # plus assez de temps : la suite sera reprise au prochain lancement
+            return False                    # plus assez de temps : la suite sera reprise au prochain lancement
+        duree_c = duree_max if reste is None else (min(duree_max, reste) if duree_max else reste)
+        coupe_par_echeance = reste is not None and (not duree_max or reste < duree_max)
         with ouvrir_en_ajout(fichier_passage(manifeste, c["id"], maintenant)) as sortie:
-            duree_c = duree_max if reste is None else (min(duree_max, reste) if duree_max else reste)
-            coupe_par_echeance = reste is not None and (not duree_max or reste < duree_max)
             conf = Config(user_agent=f"TandemScoreCitoyenBot/0.1 (+contact: {contact})", delai=delai, duree_max=duree_c, verbeux=True,
                           pages_max=c.get("pages_max", 400), sans_telechargement=tuple(c.get("sans_telechargement", [])),
                           hotes_autorises=set(c.get("hotes_autorises", [])))
             depot = DepotFichiers(os.path.join(archive, c["id"]))
             def ecrire(o, coll=c):
                 nonlocal n
-                cle = (coll["id"], o.url, o.sha256, o.statut)
-                if cle in deja:
-                    return
-                deja.add(cle)
+                with verrou:
+                    cle = (coll["id"], o.url, o.sha256, o.statut)
+                    if cle in deja:
+                        return
+                    deja.add(cle)
+                    n += 1
                 prem = premieres.get((coll["id"], o.url, o.sha256), maintenant) if o.sha256 else None
                 sortie.write(json.dumps({
                     "collectivite": coll["id"], "passage": maintenant, "url": o.url, "page_hote": o.page_hote,
@@ -106,9 +132,9 @@ def passage(cfg_json: dict, archive: str, manifeste: str, seulement=None, delai=
                     "taille": o.taille, "est_document": o.est_document, "premiere_capture": prem,
                     "depose_le_site": o.depose_le_site}, ensure_ascii=False) + "\n")
                 sortie.flush()
-                n += 1
                 if apres_observation:
-                    apres_observation()
+                    with verrou:
+                        apres_observation()
             conf.sur_observation = ecrire
             ok = True
             try:
@@ -116,22 +142,39 @@ def passage(cfg_json: dict, archive: str, manifeste: str, seulement=None, delai=
                     pass                        # déjà écrit au fil de l'eau par le rappel
             except Exception as e:          # une collectivité en panne ne doit jamais arrêter les autres
                 ok = False
-                erreurs.append({"collectivite": c["id"], "etape": "parcours", "erreur": f"{type(e).__name__} {e}"[:300]})
+                with verrou:
+                    erreurs.append({"collectivite": c["id"], "etape": "parcours", "erreur": f"{type(e).__name__} {e}"[:300]})
                 print(f"ERREUR {c['id']} parcours : {type(e).__name__} {e}", flush=True)
             for base in c.get("wp_media", []):
                 try:
                     for o in decouvrir_wp_media(base, c.get("wp_termes", ["conseil"]), depot, Navigateur(conf),
-                                                duree_max=duree_max, pages_max=c.get("wp_pages", 3),
+                                                duree_max=duree_c, pages_max=c.get("wp_pages", 3),
                                                 filtre=c.get("wp_filtre", "")):
                         ecrire(o)
                 except Exception as e:
                     ok = False
-                    erreurs.append({"collectivite": c["id"], "etape": "api_media", "erreur": f"{type(e).__name__} {e}"[:300]})
+                    with verrou:
+                        erreurs.append({"collectivite": c["id"], "etape": "api_media", "erreur": f"{type(e).__name__} {e}"[:300]})
                     print(f"ERREUR {c['id']} api média : {type(e).__name__} {e}", flush=True)
+        with verrou:
             if ok and not (coupe_par_echeance and fin_avant and time.time() >= fin_avant - 5):
                 terminees.add(c["id"])
             if apres_collectivite:
                 apres_collectivite(c["id"], ok)
+        return True
+
+    def file_(cs):
+        for c in cs:
+            if not traiter(c):
+                return
+
+    files = files_paralleles(a_faire) if paralleles else [a_faire]
+    if len(files) <= 1:
+        file_(a_faire)
+    else:                                   # sites différents : traités en même temps (politesse par site inchangée)
+        with ThreadPoolExecutor(max_workers=len(files)) as ex:
+            for f in [ex.submit(file_, cs) for cs in files]:
+                f.result()
     return n
 
 
