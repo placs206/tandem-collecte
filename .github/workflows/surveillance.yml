@@ -1,11 +1,13 @@
 name: surveillance
-# Veille indépendante du robot : détecte l'absence de réussite et l'absence de progression, ouvre une alerte (issue) et la ferme au retour à la normale.
+# Veille indépendante du robot : détecte l'absence de réussite, l'absence de progression et les passages incomplets,
+# ouvre une alerte (issue) et la ferme au retour à la normale. Régénère aussi RAPPORT.md (remplace l'ancien rapport.yml).
+# Toutes les 6 h : chaque lancement coûte au moins 1 minute du quota GitHub ; les seuils d'alerte (12 h, 36 h) restent couverts.
 on:
   schedule:
-    - cron: "43 */3 * * *"
+    - cron: "43 */6 * * *"
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
   issues: write
   actions: write
 concurrency:
@@ -41,3 +43,16 @@ jobs:
           for n in $(gh issue list --state open --label alerte-robot --json number --jq '.[].number'); do
             gh issue close "$n" --comment "Retour à la normale : $(cat diagnostic.md | head -3)"
           done
+      - name: Rapport d'avancement (RAPPORT.md)
+        if: always()
+        run: |
+          python rapport.py
+          git config user.name collecte-bot
+          git config user.email collecte-bot@users.noreply.github.com
+          git add RAPPORT.md
+          git commit -qm "rapport $(date -u +%FT%TZ)" || exit 0
+          for essai in 1 2 3; do
+            git pull -q --rebase -X theirs origin main && git push -q origin HEAD:main && exit 0
+            git rebase --abort 2>/dev/null; sleep $((essai * 5))
+          done
+          echo "ALERTE : rapport non publié" >&2; exit 1
