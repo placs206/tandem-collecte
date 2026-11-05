@@ -1,13 +1,13 @@
 {
  "passage_en_cours": {
   "id": "2026-11-05T14:27:31.804505+00:00",
-  "termine": false,
+  "termine": true,
   "collectivites_terminees": [
    "metropole-amp",
    "salon-de-provence"
   ]
  },
- "dernier_passage_complet": "2026-11-04T14:09:01.030358+00:00",
+ "dernier_passage_complet": "2026-11-05T15:07:49.213210+00:00",
  "derniere_observation": "2026-11-05T15:07:46.542527+00:00",
  "derniere_execution": "2026-11-05T14:27:31.804505+00:00",
  "derniere_erreur": null,
@@ -18,5 +18,20 @@
  },
  "executions": 11,
  "note": "Initialisé à la main d'après le dernier passage planifié réussi (run 40634673640). Mis à jour ensuite par run_collecte.py --cycle.",
- "derniere_reussite_id": "2026-11-04T13:09:16.459789+00:00"
+ "derniere_reussite_id": "2026-11-05T14:27:31.804505+00:00",
+ "qualite": {
+  "passage": "2026-11-05T14:27:31.804505+00:00",
+  "seuil": 0.5,
+  "collectivites": {
+   "metropole-amp": {
+    "observees": 10624,
+    "reference": 10512
+   },
+   "salon-de-provence": {
+    "observees": 565,
+    "reference": 560
+   }
+  },
+  "degradees": []
+ }
 }
