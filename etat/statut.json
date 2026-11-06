@@ -3,16 +3,18 @@
   "id": "2026-11-06T14:24:37.839106+00:00",
   "termine": false,
   "collectivites_terminees": [
+   "metropole-amp",
    "salon-de-provence"
   ]
  },
  "dernier_passage_complet": "2026-11-05T15:07:49.213210+00:00",
- "derniere_observation": "2026-11-06T15:02:21.521475+00:00",
+ "derniere_observation": "2026-11-06T15:02:23.441293+00:00",
  "derniere_execution": "2026-11-06T14:24:37.839106+00:00",
  "derniere_erreur": null,
  "erreurs": [],
  "tentatives": {
-  "salon-de-provence": 1
+  "salon-de-provence": 1,
+  "metropole-amp": 1
  },
  "executions": 12,
  "note": "Initialisé à la main d'après le dernier passage planifié réussi (run 40634673640). Mis à jour ensuite par run_collecte.py --cycle.",
