@@ -2,14 +2,18 @@
  "passage_en_cours": {
   "id": "2026-11-11T14:25:40.345802+00:00",
   "termine": false,
-  "collectivites_terminees": []
+  "collectivites_terminees": [
+   "salon-de-provence"
+  ]
  },
  "dernier_passage_complet": "2026-11-10T15:03:46.391518+00:00",
- "derniere_observation": "2026-11-11T14:45:44.393049+00:00",
+ "derniere_observation": "2026-11-11T14:47:33.657804+00:00",
  "derniere_execution": "2026-11-11T14:25:40.345802+00:00",
  "derniere_erreur": null,
  "erreurs": [],
- "tentatives": {},
+ "tentatives": {
+  "salon-de-provence": 1
+ },
  "executions": 17,
  "note": "Initialisé à la main d'après le dernier passage planifié réussi (run 40634673640). Mis à jour ensuite par run_collecte.py --cycle.",
  "derniere_reussite_id": "2026-11-10T14:22:30.401776+00:00",
