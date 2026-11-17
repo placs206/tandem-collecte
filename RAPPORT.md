@@ -1,13 +1,13 @@
 # Rapport du robot de collecte
 
-*Mis à jour automatiquement toutes les 6 h — dernière mise à jour le 17/11 à 14 h 53 (heure de Paris).*
+*Mis à jour automatiquement toutes les 6 h — dernière mise à jour le 17/11 à 20 h 42 (heure de Paris).*
 
 🟢 **Tout va bien** : le dernier passage s'est terminé sans erreur.
 
 | | |
 |---|---|
-| Dernier passage complet | 16/11 à 17 h 30 (il y a 21 h) |
-| Dernière activité | 16/11 à 17 h 30 (il y a 21 h) |
+| Dernier passage complet | 17/11 à 16 h 05 (il y a 5 h) |
+| Dernière activité | 17/11 à 16 h 05 (il y a 5 h) |
 | Passage en cours | terminé — 2 collectivité(s) traitée(s) |
 | Erreurs récentes | 0 |
 
@@ -16,6 +16,6 @@
 | Collectivité | Documents trouvés | Nouveaux au dernier passage | Pages lues | Liens inaccessibles | Volume |
 |---|---:|---:|---:|---:|---:|
 | metropole-amp | 780 | 0 | 862 | 439 | 2161 Mo |
-| salon-de-provence | 699 | 66 | 58 | 13 | 825 Mo |
+| salon-de-provence | 718 | 19 | 58 | 13 | 834 Mo |
 
 *« Liens inaccessibles » : adresses que le robot n'a pas pu ouvrir (page supprimée, site lent…). Ce n'est pas une panne du robot.*
