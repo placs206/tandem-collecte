@@ -1,13 +1,13 @@
 # Rapport du robot de collecte
 
-*Mis à jour automatiquement toutes les 6 h — dernière mise à jour le 21/11 à 20 h 28 (heure de Paris).*
+*Mis à jour automatiquement toutes les 6 h — dernière mise à jour le 22/11 à 02 h 50 (heure de Paris).*
 
 🔴 **Attention** : Dernier passage incomplet pour : metropole-amp (0 adresses, habituellement 10624). Le site a peut-être changé ou bloqué le robot.
 
 | | |
 |---|---|
-| Dernier passage complet | 21/11 à 15 h 31 (il y a 5 h) |
-| Dernière activité | 21/11 à 15 h 31 (il y a 5 h) |
+| Dernier passage complet | 21/11 à 15 h 31 (il y a 11 h) |
+| Dernière activité | 21/11 à 15 h 31 (il y a 11 h) |
 | Passage en cours | terminé — 2 collectivité(s) traitée(s) |
 | Erreurs récentes | 0 |
 
